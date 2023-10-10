@@ -1,22 +1,54 @@
-// import axios from 'axios';
+// imports
 import { fetchBreeds, fetchCatByBreed } from './cat-api';
+import SlimSelect from 'slim-select';
+import 'slim-select/dist/slimselect.css';
+import Notiflix from 'notiflix';
 
 const selectBreeds = document.querySelector('.breed-select');
 const divInfo = document.querySelector('.cat-info');
+const loaderText = document.querySelector('.loader');
 
-// axios.defaults.headers.common['x-api-key'] =
-//   'live_AMLrPfX01FtvBBuAgX0BJ52Sy1lkfZAliQiB7rHAWRmx9PNtIcODyurwTTW1KQ50';
+loadingList();
 
-fetchBreeds()
-  .then(array => {
-    const markup = array
-      .map(breed => `<option value='${breed.id}'>${breed.name}</option>`)
-      .join('');
-    selectBreeds.innerHTML = markup;
-  })
-  .catch(error => console.log(error));
+selectBreeds.addEventListener('change', selectionHandler);
 
-// fetchCatByBreed();
-
-// console.log(selectBreeds);
-// console.log(selectBreeds.value);
+function loadingList() {
+  selectBreeds.classList.add('hidden');
+  fetchBreeds()
+    .then(data => {
+      selectBreeds.classList.remove('hidden');
+      loaderText.classList.toggle('hidden');
+      const markup = data
+        .map(breed => `<option value='${breed.id}'>${breed.name}</option>`)
+        .join('');
+      selectBreeds.innerHTML = markup;
+      new SlimSelect({
+        select: selectBreeds,
+      });
+    })
+    .catch(error => {
+      loaderText.classList.toggle('hidden');
+      Notiflix.Notify.failure(
+        'Oops! Something went wrong! Try reloading the page!'
+      );
+      console.log(error);
+    });
+}
+function selectionHandler() {
+  divInfo.classList.add('hidden');
+  loaderText.classList.toggle('hidden');
+  fetchCatByBreed(selectBreeds.value)
+    .then(({ name, image, description, temperament }) => {
+      divInfo.classList.toggle('hidden');
+      loaderText.classList.toggle('hidden');
+      const markup = `<img class='cat-image' src='${image}' alt='${name}'><div class='text-wrapper'><h2>${name}</h2><p>${description}</p><p><b>Temperament:</b> ${temperament}</p></div>`;
+      divInfo.innerHTML = markup;
+    })
+    .catch(error => {
+      loaderText.classList.toggle('hidden');
+      Notiflix.Notify.failure(
+        'Oops! Something went wrong! Try reloading the page!'
+      );
+      console.log(error);
+    });
+}

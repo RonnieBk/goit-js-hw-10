@@ -12,12 +12,20 @@ const fetchBreeds = () => {
 };
 
 const fetchCatByBreed = breedId => {
-  const urlAddress = `https://api.thecatapi.com/v1/images/search?breed_ids=breedId`;
+  const urlAddress = `https://api.thecatapi.com/v1/images/search?breed_ids=${breedId}`;
   return axios.get(urlAddress).then(response => {
     if (response.status !== 200) {
       throw new Error(response.status);
     }
-    // console.log(response);
+    const catData = response.data[0];
+    const catInfo = {
+      image: catData.url,
+      name: catData.breeds[0].name,
+      description: catData.breeds[0].description,
+      temperament: catData.breeds[0].temperament,
+    };
+
+    return catInfo;
   });
 };
 
